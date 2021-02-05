@@ -1,4 +1,4 @@
 # nanoMPK
-beta of beta version
-
-still in dev
+MPK protector for HyperMoon
+beta version
+may have minor bugs
