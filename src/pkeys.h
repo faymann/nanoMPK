@@ -17,6 +17,9 @@
 
 #define NR_PKEYS 16
 
+/*
+ * pkru intrinsics
+ */
 #define __rdpkru()                          \
   ({                                        \
     unsigned int eax, edx;                  \
@@ -95,26 +98,29 @@
 /*
  * Syscalls
  */
+
+/*
 #ifndef SYS_mprotect_key
-#define SYS_mprotect_key 329 //__NR_pkey_mprotect
-#define SYS_pkey_alloc 330   //__NR_pkey_alloc
-#define SYS_pkey_free 331    //__NR_pkey_free
+  #define SYS_mprotect_key 329 //__NR_pkey_mprotect
+  #define SYS_pkey_alloc 330   //__NR_pkey_alloc
+  #define SYS_pkey_free 331    //__NR_pkey_free
 #endif
 
-//#define pkey_mprotect(ptr, size, prot, pkey) \
-  syscall(SYS_mprotect_key, ptr, size, prot, pkey)
+#define pkey_mprotect(ptr, size, prot, pkey) \
+    syscall(SYS_mprotect_key, ptr, size, prot, pkey)
 
-//#define pkey_alloc(pkey, init_val) \
-  syscall(SYS_pkey_alloc, pkey, init_val)
+#define pkey_alloc(pkey, init_val) \
+    syscall(SYS_pkey_alloc, pkey, init_val)
 
-//#define pkey_free(pkey) \
-  syscall(SYS_pkey_free, pkey)
+#define pkey_free(pkey) \
+    syscall(SYS_pkey_free, pkey)*/
 
-#define pkey_set(__pkey, __access_rights)                         \
-  do                                                              \
-  {                                                               \
-    __wrpkrucheck((__rdpkru() & ~(3 << (2 * key))) | (__access_rights << (2 * __pkey)));\
-  }while (0)
+
+#define _pkey_set(__pkey, __access_rights)                                               \
+  do                                                                                     \
+  {                                                                                      \
+    __wrpkrucheck((__rdpkru() & ~(3 << (2 * key))) | (__access_rights << (2 * __pkey))); \
+  } while (0)
 
 /*
  * Function to check if machine has pku
