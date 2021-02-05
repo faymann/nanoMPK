@@ -11,12 +11,7 @@ extern "C"
 #endif
 #include "pkeys.h"
 
-#define NANO_USE_LOG 0
-#define mpk_set(__pkey, __prot)  \
-    do                           \
-    {                            \
-        pkey_set(__pkey, __prot) \
-    } while (0)
+#define NANO_USE_LOG 1
 
 #define errExit(msg)        \
     do                      \
@@ -25,15 +20,28 @@ extern "C"
         exit(EXIT_FAILURE); \
     } while (0)
 
-#define _to_log(format, ...)                                 \
-    do                                                       \
-    {                                                        \
-        if (NANO_USE_LOG)                                    \
-        {                                                    \
-            fprintf(stderr, "[smv] " format, ##__VA_ARGS__); \
-            fflush(NULL);                                    \
-        }                                                    \
+#define _to_log(format, ...)                                  \
+    do                                                        \
+    {                                                         \
+        if (NANO_USE_LOG)                                     \
+        {                                                     \
+            fprintf(stderr, "[nano] " format, ##__VA_ARGS__); \
+            fflush(NULL);                                     \
+        }                                                     \
     } while (0)
+
+#define mpk_set(__pkey, __prot)   \
+    do                            \
+    {                             \
+        _pkey_set(__pkey, __prot) \
+    } while (0)
+
+#define nano_mmap_domain(addr, length, prot, flags, fd, offset, Pkey)                                                                                         \
+    ({                                                                                                                                                        \
+        void *__tmp = NULL;                                                                                                                                   \
+        __tmp = ((__tmp = mmap(addr, length, prot, flags, fd, offset)) == MAP_FAILED || pkey_mprotect(__tmp, length, prot, Pkey) == -1) ? (void *)-1 : __tmp; \
+        __tmp;                                                                                                                                                \
+    })
 
     typedef struct _mpk_node
     {
@@ -44,6 +52,15 @@ extern "C"
         int id;
         struct _mpt_node *next;
     } mpk_node;
+
+    static inline int
+    my_pkey_set(int pkru)
+    {
+        asm volatile(".byte 0x0f,0x01,0xef\n\t"
+                     :
+                     : "a"(pkru), "c"(0), "d"(0));
+        return 0;
+    }
 
     // called only once at nanoNF load and unload
     // return 0 for success, other for failure
